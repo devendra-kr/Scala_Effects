@@ -1,0 +1,86 @@
+
+Effects in Programming :-
+
+delay method : wraps a computation in IO, the computation is NOT run
+eg: def greet(name: String): IO[Unit] {
+     ID.delay(println("Hello $name")) 
+   }
+
+   greet("devendra") // when we call this delay method will not execute.
+   greet("devendra").run // now delay method also going to execute.
+
+
+unsafeRunSync : replacement of run method.
+
+foreverM : factory method in IO and when we apply this code will run forever   
+
+
+NOTE : 
+1. flatMap(_ => println("hello"))  : can be write as *> println("hello") . So, flatMap(_ replaced with *>
+2. *> also same as >>  
+3. map(_ => replaced with as(
+
+
+As unsafeRunSync not a appropriate to use will use ExitCode.Success from IOApp libarary.
+IOApp : will extends IOApp, if we extends IOApp we need to override run method from here execution will start and the return type run method is IO[ExitCode].
+
+toRight : This is equivalent to: 
+    option match {
+      case Some(x) => Left(x)
+      case None    => Right(right)
+    }
+
+
+Concurrency and Parallelism:-
+1. map + sequnce == traverse
+2. parTraverse : it will run paralle and its depends on underlying thread pools.
+3. mapN 
+4. parMapN : parallelism 
+5. race : the winner is returned (Left or Right) and the loser is cancelled. eg: def race[A, B](left: IO[A], right: IO[B]): IO[Either[A, B]]
+6. IO.sleep : this method will not be blocked the actual thread, its doing symantic blocking
+7. flatTap : use for printing in console
+
+Resource Safety:-
+1. IO.blocking(...).bracket(use)(release) : here release get call event use get failed.
+2. Resource.make : its a factory made use for above case due to bracket have some limitation can be use for multiple input resounce.
+  eg: Resource.make[IO, FileInputStream](accquireReader)(closeReader)
+3. Resource.fromAutoCloseable(accquireReader)
+
+
+Asynchronous Computations
+1. IO.ExecutionContext : it will use the current context and Alternavtive of global ExecutionContext.
+2. IO.async_ : 
+   eg : IO.ExecutionContext.flatMap { implicit ec => 
+          IO.async_(cb => findPersonById(id).onCmplete {
+            case Success(value)     => cb(Right(value)) 
+            case Failure(exception) => cd(Left(exception)) 
+          })
+3. IO.fromFuture : its equivalent to above.
+  eg : IO.ExecutionContext.flatMap { implicit ec =>
+          IO.fromFuture(findPersonById(id))
+        }
+4. evalOn : use for custom executor
+  eg : val ec: ExecutionContext = ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
+     : .evalOn(ec)
+
+Memorization :-
+1. traverse_ :  ignore the return type
+2. memoize : its similar to lazy val 
+
+Time :-
+1.  IO.realTime : in place to Sysytem.getCurrentTime
+
+Concurrent Shared State Part 1:- 
+1. Ref class : 
+2. Deferred : funtion version of scala promies, its has get and complete methods.
+3. attempt : gives a result either lfet and right 
+
+
+Queue : its a trait and it has take, offer, tryTake and tryOffer methods.
+
+Thread Pool : 
+1. Fixed Thread Pool
+2. Cached Thread Pool / synchronous queue
+3. Work stealing Thread Pool
+
+
